@@ -1,0 +1,15 @@
+{
+  "name": "MMM-windforecast",
+  "version": "0.0.1",
+  "description": "MagicMirror module for Hourly Wind Forecast",
+  "license": "MIT",
+  "author": "NorthernMan54",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/NorthernMan54/MMM-windforecast"
+  },
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
