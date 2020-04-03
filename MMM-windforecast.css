@@ -1,27 +1,32 @@
-.weatherforecast .day {
+.MMM-windforecast .day {
   padding-left: 0;
   padding-right: 25px;
 }
 
-.weatherforecast .weather-icon {
+.MMM-windforecast .weather-icon {
   padding-right: 30px;
   text-align: center;
 }
 
-.weatherforecast .min-temp {
+.MMM-windforecast .min-temp {
   padding-left: 20px;
   padding-right: 0;
 }
 
-.weatherforecast .rain {
+.MMM-windforecast .rain {
   padding-left: 20px;
   padding-right: 0;
 }
 
-.weatherforecast tr.colored .min-temp {
+.MMM-windforecast .wind {
+  padding-left: 20px;
+  padding-right: 0;
+}
+
+.MMM-windforecast tr.colored .min-temp {
   color: #BCDDFF;
 }
 
-.weatherforecast tr.colored .max-temp {
+.MMM-windforecast tr.colored .max-temp {
   color: #FF8E99;
 }
