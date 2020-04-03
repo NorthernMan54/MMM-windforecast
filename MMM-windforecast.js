@@ -1,13 +1,14 @@
 /* global Module */
 
 /* Magic Mirror
- * Module: WeatherForecast
+ * Module: WindForecast
  *
+ * Cloned from Weather Forecast
  * By Michael Teeuw http://michaelteeuw.nl
  * MIT Licensed.
  */
 
-Module.register("weatherforecast",{
+Module.register("MMM-windforecast",{
 
 	// Default module config.
 	defaults: {
@@ -75,7 +76,7 @@ Module.register("weatherforecast",{
 
 	// Define required scripts.
 	getStyles: function() {
-		return ["weather-icons.css", "weatherforecast.css"];
+		return ["weather-icons.css", "MMM-windforecast.css"];
 	},
 
 	// Define required translations.
@@ -230,7 +231,7 @@ Module.register("weatherforecast",{
 					var event = payload[e];
 					if (event.location || event.geo) {
 						this.firstEvent = event;
-						//Log.log("First upcoming event with location: ", event);
+						Log.log("First upcoming event with location: ", event);
 						break;
 					}
 				}
@@ -244,7 +245,7 @@ Module.register("weatherforecast",{
 	 */
 	updateWeather: function() {
 		if (this.config.appid === "") {
-			Log.error("WeatherForecast: APPID not set!");
+			Log.error("WindForecast: APPID not set!");
 			return;
 		}
 
@@ -253,6 +254,7 @@ Module.register("weatherforecast",{
 		var retry = true;
 
 		var weatherRequest = new XMLHttpRequest();
+		Log.info("URL", url);
 		weatherRequest.open("GET", url, true);
 		weatherRequest.onreadystatechange = function() {
 			if (this.readyState === 4) {
@@ -332,6 +334,8 @@ Module.register("weatherforecast",{
 		var lastDay = null;
 		var forecastData = {};
 
+		Log.log("TZ", data.city.timezone);
+
 		for (var i = 0, count = data.list.length; i < count; i++) {
 
 			var forecast = data.list[i];
@@ -339,23 +343,26 @@ Module.register("weatherforecast",{
 
 			var day;
 			var hour;
-			if(!!forecast.dt_txt) {
+			Log.log("dt_txt", forecast.dt, forecast.dt_txt);
+//			if(!!forecast.dt_txt) {
 				day = moment(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss").format("ddd");
 				hour = moment(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss").format("H");
-			} else {
-				day = moment(forecast.dt, "X").format("ddd");
-				hour = moment(forecast.dt, "X").format("H");
-			}
+//			} else {
+				day = moment(forecast.dt, "X").utcOffset(data.city.timezone/60).format("ddd");
+				hour = moment(forecast.dt, "X").utcOffset(data.city.timezone/60).format("H");
+//			}
 
-			if (day !== lastDay) {
+//			if (day !== lastDay) {
 				var forecastData = {
-					day: day,
+					day: day + " - " + hour,
 					icon: this.config.iconTable[forecast.weather[0].icon],
 					maxTemp: this.roundValue(forecast.temp.max),
-					minTemp: this.roundValue(forecast.temp.min),
-					rain: this.processRain(forecast, data.list)
+					minTemp: this.roundValue(forecast.wind.speed),
+					rain: this.processRain(forecast, data.list),
+					wind: this.roundValue(forecast.wind.speed)
 				};
 
+				Log.log("forecastData", forecastData);
 				this.forecast.push(forecastData);
 				lastDay = day;
 
@@ -363,10 +370,10 @@ Module.register("weatherforecast",{
 				if (this.forecast.length === this.config.maxNumberOfDays) {
 					break;
 				}
-			} else {
-				//Log.log("Compare max: ", forecast.temp.max, parseFloat(forecastData.maxTemp));
+	//		} else {
+				Log.log("Compare max: ", forecast.temp.max, parseFloat(forecastData.maxTemp));
 				forecastData.maxTemp = forecast.temp.max > parseFloat(forecastData.maxTemp) ? this.roundValue(forecast.temp.max) : forecastData.maxTemp;
-				//Log.log("Compare min: ", forecast.temp.min, parseFloat(forecastData.minTemp));
+				Log.log("Compare min: ", forecast.temp.min, parseFloat(forecastData.minTemp));
 				forecastData.minTemp = forecast.temp.min < parseFloat(forecastData.minTemp) ? this.roundValue(forecast.temp.min) : forecastData.minTemp;
 
 				// Since we don't want an icon from the start of the day (in the middle of the night)
@@ -374,10 +381,10 @@ Module.register("weatherforecast",{
 				if (hour >= 8 && hour <= 17) {
 					forecastData.icon = this.config.iconTable[forecast.weather[0].icon];
 				}
-			}
+	//		}
 		}
 
-		//Log.log(this.forecast);
+		Log.log(this.forecast);
 		this.show(this.config.animationSpeed, {lockString:this.identifier});
 		this.loaded = true;
 		this.updateDom(this.config.animationSpeed);
