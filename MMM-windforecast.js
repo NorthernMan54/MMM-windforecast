@@ -373,12 +373,13 @@ Module.register("MMM-windforecast", {
       var day;
       var hour;
 
-      Log.log("forecast", forecast);
+      // Log.log("forecast", forecast);
 
       day = moment(forecast.dt, "X").utcOffset(data.city.timezone / 60).format("ddd");
       hour = moment(forecast.dt, "X").utcOffset(data.city.timezone / 60).format("H");
 
       if (this.config.daily) {
+	// Daily
         if (day !== lastDay) {
           var forecastData = {
             day: day,
@@ -389,7 +390,7 @@ Module.register("MMM-windforecast", {
             wind: this.roundValue(forecast.wind.speed)
           };
 
-          Log.log("forecastData", forecastData);
+          // Log.log("forecastData", forecastData);
           this.forecast.push(forecastData);
           lastDay = day;
 
@@ -410,16 +411,17 @@ Module.register("MMM-windforecast", {
           }
         }
       } else {
+	// Hourly
         var forecastData = {
           day: day + " - " + hour,
           icon: this.config.iconTable[forecast.weather[0].icon],
           maxTemp: this.roundValue(forecast.temp.max),
           minTemp: this.roundValue(forecast.temp.min),
-          rain: this.processRain(forecast, data.list),
+          rain: this.processHourlyRain(forecast, data.list),
           wind: this.roundValue(forecast.wind.speed)
         };
 
-        Log.log("forecastData", forecastData);
+        // Log.log("forecastData", forecastData);
         this.forecast.push(forecastData);
         lastDay = day;
 
@@ -441,7 +443,7 @@ Module.register("MMM-windforecast", {
       }
     }
 
-    Log.log(this.forecast);
+    // Log.log(this.forecast);
     this.show(this.config.animationSpeed, {
       lockString: this.identifier
     });
@@ -500,6 +502,25 @@ Module.register("MMM-windforecast", {
   roundValue: function(temperature) {
     var decimals = this.config.roundTemp ? 0 : 1;
     return parseFloat(temperature).toFixed(decimals);
+  },
+
+  /* processHourlyRain(forecast, allForecasts)
+   * Calculates the amount of rain for a whole day even if long term forecasts isn't available for the appid.
+   *
+   * When using the the fallback endpoint forecasts are provided in 3h intervals and the rain-property is an object instead of number.
+   * That object has a property "3h" which contains the amount of rain since the previous forecast in the list.
+   * This code finds all forecasts that is for the same day and sums the amount of rain and returns that.
+   */
+  processHourlyRain: function(forecast, allForecasts) {
+    // If the amount of rain actually is a number, return it
+    // Log.log("Rain-1", forecast.rain);
+    if (!forecast.rain) { 
+	return undefined;
+    }
+    if (!isNaN(forecast.rain)) {
+      return forecast.rain;
+    }
+    return Object.values(forecast.rain)[0];
   },
 
   /* processRain(forecast, allForecasts)
